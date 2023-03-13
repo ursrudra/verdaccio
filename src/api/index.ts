@@ -27,6 +27,8 @@ import apiEndpoint from './endpoint';
 import { errorReportingMiddleware, handleError, serveFavicon } from './middleware';
 import webMiddleware from './web';
 
+const { version } = require('../../package.json');
+
 export function loadTheme(config) {
   if (_.isNil(config.theme) === false) {
     return _.head(
@@ -102,7 +104,11 @@ const defineAPI = function (config: IConfig, storage: IStorageHandler): any {
   app.use(apiEndpoint(config, auth, storage));
 
   // For WebUI & WebUI API
-  if (_.get(config, 'web.enable', true)) {
+  if (config?.web?.enable === true) {
+    app.use((_req, res, next) => {
+      res.locals.app_version = version ?? '';
+      next();
+    });
     app.use('/', webMiddleware(config, auth, storage));
   } else {
     app.get('/', function (req: $RequestExtend, res: $ResponseExtend, next: $NextFunctionVer) {
